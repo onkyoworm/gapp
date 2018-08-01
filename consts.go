@@ -1,0 +1,239 @@
+// MIT License
+//
+// Copyright (c) 2016-2018 GACHAIN
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+package main
+
+import (
+	"os"
+	"strings"
+)
+
+const (
+	currentVersion = "0.9.11"
+	currentTitle   = "Applications Packager " + currentVersion
+
+	eSIM  = ".sim"
+	ePTL  = ".ptl"
+	eJSON = ".json"
+	eCSV  = ".csv"
+
+	dirBlock = "blocks"
+	dirMenu  = "menus"
+	dirLang  = "languages"
+	dirTable = "tables"
+	dirParam = "parameters"
+	dirData  = "data"
+	dirPage  = "pages"
+	dirCon   = "contracts"
+
+	typeBlock = "blocks"
+	typeMenu  = "menu"
+	typeLang  = "languages"
+	typeTable = "tables"
+	typeParam = "app_params"
+	typePage  = "pages"
+	typeCon   = "contracts"
+
+	defaultCondition  = "ContractConditions(\"MainCondition\")"
+	defaultMenu       = "default_menu"
+	defaultPermission = "{\"insert\":\"true\",\"update\":\"true\",\"new_column\":\"true\"}"
+	configName        = "config.json"
+	separator         = string(os.PathSeparator)
+	structFileName    = "struct.dot"
+
+	helpMsg = "please choose directory for packing, example:\n    ap dirfiles" + separator + "\nor file to unpacking, example:\n    ap file.json"
+)
+
+type configFile struct {
+	Blocks    []importConf `json:"blocks"`
+	Contracts []importConf `json:"contracts"`
+	Menus     []importConf `json:"menus"`
+	Pages     []importConf `json:"pages"`
+	Tables    []importConf `json:"tables"`
+	Params    []importConf `json:"parameters"`
+	Name      string       `json:"name,omitempty"`
+}
+
+type exportFile struct {
+	Blocks     []importStruct `json:"blocks"`
+	Contracts  []importStruct `json:"contracts"`
+	Data       []dataStruct   `json:"data"`
+	Languages  []importStruct `json:"languages"`
+	Menus      []importStruct `json:"menus"`
+	Pages      []importStruct `json:"pages"`
+	Parameters []importStruct `json:"parameters"`
+	Tables     []importStruct `json:"tables"`
+	Name       string         `json:"name,omitempty"`
+}
+
+func (e *exportFile) cleaning() {
+	for i := range e.Blocks {
+		e.Blocks[i].Type = ""
+	}
+	for i := range e.Contracts {
+		e.Contracts[i].Type = ""
+	}
+	for i := range e.Languages {
+		e.Languages[i].Type = ""
+	}
+	for i := range e.Menus {
+		e.Menus[i].Type = ""
+	}
+	for i := range e.Pages {
+		e.Pages[i].Type = ""
+	}
+	for i := range e.Parameters {
+		e.Parameters[i].Type = ""
+	}
+	for i := range e.Tables {
+		e.Tables[i].Type = ""
+	}
+}
+
+type importFile struct {
+	Blocks     []commonStruct `json:"blocks"`
+	Contracts  []commonStruct `json:"contracts"`
+	Data       []dataStruct   `json:"data"`
+	Languages  []commonStruct `json:"languages"`
+	Menus      []commonStruct `json:"menus"`
+	Pages      []commonStruct `json:"pages"`
+	Parameters []commonStruct `json:"parameters"`
+	Tables     []commonStruct `json:"tables"`
+	Name       string         `json:"name,omitempty"`
+}
+
+func (item *importStruct) dir() string {
+	if !strings.HasSuffix(item.Type, "s") {
+		return item.Type + "s"
+	}
+	return item.Type
+}
+func (item *importStruct) fullName() string {
+	return item.Name + item.ext()
+}
+func (item *importStruct) ext() string {
+	switch item.Type {
+	case typeBlock:
+		return ePTL
+	case typeMenu:
+		return ePTL
+	case typePage:
+		return ePTL
+	case typeParam:
+		return eCSV
+	case typeCon:
+		return eSIM
+	default:
+		return eJSON
+	}
+}
+
+type dataFile struct {
+	Name string         `json:"name"`
+	Data []importStruct `json:"data"`
+}
+type dataConf struct {
+	Name string       `json:"name"`
+	Data []importConf `json:"data"`
+}
+
+type importStruct struct {
+	Conditions  string `json:",omitempty"`
+	Value       string `json:",omitempty"`
+	Name        string `json:",omitempty"`
+	Trans       string `json:",omitempty"`
+	Menu        string `json:",omitempty"`
+	Columns     string `json:",omitempty"`
+	Permissions string `json:",omitempty"`
+	Type        string `json:",omitempty"`
+}
+type importConf struct {
+	Conditions  string `json:",omitempty"`
+	Name        string `json:",omitempty"`
+	Menu        string `json:",omitempty"`
+	Permissions string `json:",omitempty"`
+	Type        string `json:",omitempty"`
+}
+
+type commonStruct struct {
+	Name       string
+	Value      string
+	Conditions string
+	Trans      string
+	Columns    string
+	Table      string
+}
+type testFormatStruct struct {
+	Name       string         `json:"name,omitempty"`
+	Blocks     []importStruct `json:"blocks,omitempty"`
+	Contracts  []importStruct `json:"contracts,omitempty"`
+	Languages  []importStruct `json:"languages,omitempty"`
+	Menus      []importStruct `json:"menus,omitempty"`
+	Pages      []importStruct `json:"pages,omitempty"`
+	Parameters []importStruct `json:"parameters,omitempty"`
+	Tables     []importStruct `json:"tables,omitempty"`
+}
+
+func (t *testFormatStruct) len() (l int) {
+	if t.Name != "" {
+		l++
+	}
+	if t.Blocks != nil {
+		l++
+	}
+	if t.Contracts != nil {
+		l++
+	}
+	if t.Languages != nil {
+		l++
+	}
+	if t.Menus != nil {
+		l++
+	}
+	if t.Pages != nil {
+		l++
+	}
+	if t.Parameters != nil {
+		l++
+	}
+	if t.Tables != nil {
+		l++
+	}
+	return l
+}
+
+type dataStruct struct {
+	Table   string
+	Columns []string
+	Data    [][]string
+}
+
+type graphStruct struct {
+	Name      string
+	Value     string
+	Group     string
+	Path      string
+	Dir       string
+	FontColor string
+	Color     string
+	EdgeLabel string
+}
