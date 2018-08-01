@@ -11,14 +11,13 @@ Is created in the process of packing or unpacking. Shows the structure of an app
 
 ## Examples
 
-### Unpack file from "basic.sim" to "basic/"
+### Unpack file from "basic.json" to "basic/"
 
->./gapp basic.sim
+>./gapp basic.json
 
 ### Pack files from "basic/" to basic.json
 
 >./gapp basic/
-
 
 ## build
 
