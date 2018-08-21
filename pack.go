@@ -87,6 +87,7 @@ func packJSON(path string) {
 		if importNew {
 			data := dataFile{}
 			data.Name = out.Name
+			data.Conditions = out.Conditions
 			data.Data = append(data.Data, out.Blocks...)
 			data.Data = append(data.Data, out.Menus...)
 			data.Data = append(data.Data, out.Languages...)
